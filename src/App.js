@@ -50,12 +50,13 @@ class FactionPicker extends Component {
       let currentNum = taken[taken.length-1].no;
       taken.push({"no": currentNum+1, "val": 0})
     }
+    var newTaken = [];
     for (let i=0; i<taken.length; i++) {
-      if (taken[i].no > +event.target.value + 3) {
-        taken.splice(i, 1);
+      if (taken[i].no <= +event.target.value + 3) {
+        newTaken.push(taken[i]);
       }
     }
-    this.setState({"numPlayers": +event.target.value, "taken": taken});
+    this.setState({"numPlayers": +event.target.value, "taken": newTaken});
   }
 
   handleBonusSelectionChange(event) {
@@ -89,6 +90,7 @@ class BonusTileSelects extends Component {
     for (let i=0; i<this.props.num; i++) {
       neededTilesArray.push(i);
     }
+    console.log(this.props.alreadySelected.length);
     return (
       neededTilesArray.map((num) => <Select type="bonusTiles" key={""+num} name={"bonusTileNo"+(num+1)}
                                     identity={num+1}
