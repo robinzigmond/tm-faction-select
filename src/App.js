@@ -204,9 +204,27 @@ class OptionList extends Component {
       }
       return true;
     }
-    const optionsToUse = options.filter(isOptionOK);    
+    const optionsToUse = options.filter(isOptionOK);
+    // reformat options list for Round 6 scoring tile, where cult bonus is irrelevant:
+    var displayedOptions;
+    if (options == scoringTiles && identity == 6) {
+      displayedOptions = [];
+      let optionsUsed = [];
+      for (let i=0; i<optionsToUse.length; i++) {
+        let option = optionsToUse[i];
+        if (optionsUsed.indexOf(option.description.split(",")[0]) == -1) {
+          let description = option.description.split(",")[0];
+          let truncatedOption = {"id": option.id, "description": description};
+          displayedOptions.push(truncatedOption);
+          optionsUsed.push(description);
+        }
+      }
+    }
+    else {
+      displayedOptions = optionsToUse;
+    }    
     return (
-      optionsToUse.map((option, index) => 
+      displayedOptions.map((option, index) => 
         <option key={keys[index]} value={option.id || index+2}>
           {option.description || option}
         </option>
