@@ -22,7 +22,7 @@ const bonusTiles = [
    "description": "1 VP for each D when passing, income 2 coins"},
   {"id": 10,
    "description": "3 VP for each shipping level when passing, income 3 power"}
-]
+];
 
 const scoringTiles = [
   {"id": 1,
@@ -43,7 +43,44 @@ const scoringTiles = [
    "description": "5VP/TW, 1 spade per 4 Earth"},
   {"id": 9,
    "description": "4VP/TE, 2 coins per cult priest"}
-]
+];
+
+// scores for how much each faction "likes" or "dislikes" features of the setup
+// scores for bonuses go up to +-10, those for each round go up to the round number in absolute value
+const suitability = [
+  {"name": "Alchemists", "colour": 1,
+                         "bonuses": [3, -6, -10, 2, 8, 10, 4, 5, 5, 4],
+                         "scoringRound1": [0, 0, 0, 0, 1, 1, 0, 0, -1],
+                         "scoringRound2": [1, 1, -1, -1, -2, 0, 1, 1, 1],
+                         "scoringRound3": [3, 3, -3, -1, 1, 1, 1, 1, -1],
+                         "scoringRound4": [4, 4, -4, -4, -2, -2, 4, -2, -4],
+                         "scoringRound5": [2, 2, 4, 5, -3, 0, 0, 2, -3],
+                         "scoringRound6": [3, 3, 6, 6, -4, -4, 0, 4, -3]}, // total: 46
+  {"name": "Auren", "colour": 3,
+                    "bonuses": [2, 3, 2, 6, 4, 5, -2, 3, 0, 0],
+                    "scoringRound1": [1, 0, 1, 1, 1, 1, -1, -1, -1],
+                    "scoringRound2": [1, 0, 1, 1, 1, 0, -1, -2, 0],
+                    "scoringRound3": [1, 1, -2, -2, -3, -3, -1, 0, 0],
+                    "scoringRound4": [1, 1, 0, 0, -2, -3, -2, 0, -1],
+                    "scoringRound5": [1, 1, 1, 1, -3, -4, 0, 0, 0],
+                    "scoringRound6": [1, 1, 1, 1, -1, -1, 0, 0, 0]}, // total: 10
+  {"name": "Chaos Magicians", "colour": 5,
+                              "bonuses": [7, 6, 6, 9, 5, 8, -6, -2, 0, 7],
+                              "scoringRound1": [0, 1, 0, 0, 1, 1, 0, 0, 0],
+                              "scoringRound2": [0, 1, -2, -2, 1, 2, 0, -2, 1],
+                              "scoringRound3": [2, 3, -1, -1, -3, -2, 0, -2, -1],
+                              "scoringRound4": [3, 4, 0, 0, -4, -4, 1, 1, 1],
+                              "scoringRound5": [0, 2, 2, 2, -4, -4, 0, 2, 0],
+                              "scoringRound6": [0, 0, 2, 2, -3, -3, 0, 1, 3],}, // total: 41
+  {"name": "Cultists", "colour": 0,
+                       "bonuses": [4, 7, 6, 0, 5, -6, -1, 8, 2, -2],
+                       "scoringRound1": [0, 0, 0, 0, -1, 0, 1, 1, 0],
+                       "scoringRound2": [0, 1, -1, -1, 0, -1, 1, 1, 1],
+                       "scoringRound3": [2, 3, 1, 1, -2, -1, -2, -1, 2],
+                       "scoringRound4": [2, 3, 1, 1, -1, 0, -3, 2, 2],
+                       "scoringRound5": [3, 4, 3, 3, 1, 2, 0, 4, 2],
+                       "scoringRound6": [3, 3, 4, 4, 5, 5, 0, 3, 0]} // total: 84
+];
 
 class App extends Component {
   render() {
@@ -195,7 +232,22 @@ class OptionList extends Component {
       for (let i=0; i<alreadySelected.length; i++) {
         if (alreadySelected[i].val == option.id && alreadySelected[i].val > 0
         && alreadySelected[i].no != identity) {
-          return false;
+          // but we musn't eliminate an option from Round 6 unless BOTH tiles with the 
+          // same scoring category have already been taken. (In the 3 cases where there
+          // are 2 with the same scoring.)
+          if (options == scoringTiles && alreadySelected[i].no == 6 && alreadySelected[i].val < 7) {
+            // pairs are (1, 2), (3, 4), (5, 6)
+            let evenOrOdd = alreadySelected[i].val % 2;
+            let pairing = 2*Math.floor((alreadySelected[i].val-1)/2) + 1 + evenOrOdd;
+            for (let j=0; j<alreadySelected.length; j++) {
+              if (alreadySelected[j].val == pairing) {
+                return false;
+              }
+            }
+          }
+          else {
+            return false;
+          }
         }
       }
       // eliminate spade scoring tile from round 5 or 6
